@@ -1,0 +1,17 @@
+{
+  "name": "llm-status",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "16.2.4",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {}
+}
