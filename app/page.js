@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { defaultProviderId, getProfile, getProvider, providers } from "../data/providers";
 
 const timezones = [
-  { id: "auto", label: "Auto" },
-  { id: "UTC", label: "UTC" },
-  { id: "Asia/Tokyo", label: "Tokyo" },
-  { id: "America/Los_Angeles", label: "Los Angeles" },
-  { id: "America/New_York", label: "New York" },
-  { id: "Europe/London", label: "London" },
-  { id: "Europe/Paris", label: "Paris" },
-  { id: "Australia/Sydney", label: "Sydney" }
+  { id: "auto", label: "Auto", labelJa: "自動" },
+  { id: "UTC", label: "UTC", labelJa: "協定世界時" },
+  { id: "Asia/Tokyo", label: "Tokyo", labelJa: "東京" },
+  { id: "America/Los_Angeles", label: "Los Angeles", labelJa: "ロサンゼルス" },
+  { id: "America/New_York", label: "New York", labelJa: "ニューヨーク" },
+  { id: "Europe/London", label: "London", labelJa: "ロンドン" },
+  { id: "Europe/Paris", label: "Paris", labelJa: "パリ" },
+  { id: "Australia/Sydney", label: "Sydney", labelJa: "シドニー" }
 ];
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -270,7 +270,7 @@ export default function Home() {
           <select value={timezoneId} onChange={(event) => setTimezoneId(event.target.value)}>
             {timezones.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.label}
+                {lang === "ja" ? item.labelJa : item.label}
               </option>
             ))}
           </select>
