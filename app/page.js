@@ -45,6 +45,12 @@ const copy = {
     waiting: "Waiting for the official status response.",
     noComponents: "No matching official components were returned.",
     noIncidents: "No matching active incidents from the official source.",
+    statusNotes: {
+      matched_components: "Filtered to official components that match this model profile.",
+      provider_rollup: "No exact model-specific public component was found, so the provider rollup is shown.",
+      google_cloud_incidents: "Google publishes a Cloud incident feed; this view filters it for Gemini-related records.",
+      fetch_error: "Unable to retrieve the official status source."
+    },
     indicators: {
       none: "Operational",
       minor: "Minor issue",
@@ -83,6 +89,12 @@ const copy = {
     waiting: "公式ステータスの応答を待っています。",
     noComponents: "該当する公式コンポーネントは返されませんでした。",
     noIncidents: "公式ソースに該当するアクティブな障害情報はありません。",
+    statusNotes: {
+      matched_components: "このモデルに一致する公式コンポーネントに絞り込んでいます。",
+      provider_rollup: "モデル専用の公開コンポーネントが見つからないため、プロバイダー全体の概要を表示しています。",
+      google_cloud_incidents: "Google Cloudの障害フィードをGemini関連レコードで絞り込んでいます。",
+      fetch_error: "公式ステータス情報を取得できませんでした。"
+    },
     indicators: {
       none: "正常",
       minor: "軽微な問題",
@@ -180,6 +192,11 @@ function getPeakWindowView(peakWindow, timezoneId, lang) {
 
 function formatStatus(value) {
   return String(value ?? "unknown").replaceAll("_", " ");
+}
+
+function getStatusNote(status, lang) {
+  if (!status) return copy[lang].waiting;
+  return copy[lang].statusNotes[status.noteCode] ?? status.note ?? copy[lang].waiting;
 }
 
 export default function Home() {
@@ -380,7 +397,7 @@ export default function Home() {
 
         <aside className="note">
           <strong>{t.sourceNote}</strong>
-          <p>{status?.note ?? t.waiting}</p>
+          <p>{getStatusNote(status, lang)}</p>
         </aside>
       </section>
     </main>

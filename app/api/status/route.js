@@ -41,6 +41,7 @@ function normalizeStatusPage(payload, provider, profile) {
       updatedAt: incident.updated_at ?? incident.created_at ?? null,
       url: incident.shortlink ?? provider.statusPageUrl
     })),
+    noteCode: matchingComponents.length ? "matched_components" : "provider_rollup",
     note: matchingComponents.length
       ? "Filtered to official components that match this model profile."
       : "No exact model-specific public component was found, so the provider rollup is shown."
@@ -77,6 +78,7 @@ function normalizeGoogleIncidents(payload, provider, profile) {
       updatedAt: incident.modified ?? incident.created ?? null,
       url: `${provider.statusPageUrl}${incident.uri ?? ""}`
     })),
+    noteCode: "google_cloud_incidents",
     note: "Google publishes a Cloud incident feed; this view filters it for Gemini-related records."
   };
 }
@@ -121,6 +123,7 @@ export async function GET(request) {
         indicator: "unknown",
         components: [],
         incidents: [],
+        noteCode: "fetch_error",
         note: error.message
       },
       { status: 502 }
