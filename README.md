@@ -16,4 +16,4 @@ Open `http://localhost:3000`.
 - OpenAI: `https://status.openai.com/api/v2/summary.json`
 - Anthropic: `https://status.anthropic.com/api/v2/summary.json`
 - Google Cloud / Vertex AI incidents: `https://status.cloud.google.com/incidents.json`
-- Claude March 2026 usage promotion: `https://support.claude.com/en/articles/14063676-claude-march-2026-usage-promotion`
+- OpenAI ChatGPT peak-hour acknowledgement: `https://help.openai.com/en/articles/9047779-why-is-my-chatgpt-taking-so-long-to-respond`

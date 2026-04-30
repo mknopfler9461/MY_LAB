@@ -1,18 +1,15 @@
-const claudeMarch2026Promotion = {
-  title: "Claude March 2026 usage promotion",
-  sourceUrl: "https://support.claude.com/en/articles/14063676-claude-march-2026-usage-promotion",
-  startsAt: "2026-03-13T00:00:00-07:00",
-  endsAt: "2026-03-28T23:59:00-07:00",
-  peakWindowUtc: {
-    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    start: "12:00",
-    end: "18:00"
+const openAiChatGptPeakEstimate = {
+  title: "Estimated ChatGPT peak demand window",
+  label: "Likely peak: 8 PM-5 AM EST",
+  sourceUrl: "https://help.openai.com/en/articles/9047779-why-is-my-chatgpt-taking-so-long-to-respond",
+  sourceLabel: "OpenAI Help Center",
+  windowUtc: {
+    start: "01:00",
+    end: "10:00"
   },
-  bonusLabel: "2x usage during off-peak hours",
-  planScope: "Free, Pro, Max, and Team plans; Enterprise excluded",
-  surfaces: ["Claude", "Cowork", "Claude Code", "Claude for Excel", "Claude for PowerPoint"],
   sourceNote:
-    "Anthropic states that five-hour usage is doubled outside 8 AM-2 PM ET / 5-11 AM PT / 12-6 PM GMT on weekdays during the promotion."
+    "OpenAI officially acknowledges that ChatGPT users may notice slowness during peak hours, but does not publish exact peak times. This window is an unofficial estimate based on likely North America evening demand.",
+  offPeakNote: "Expected off-peak is outside this estimated window."
 };
 
 export const providers = [
@@ -37,7 +34,8 @@ export const providers = [
           "File uploads",
           "Voice mode",
           "Connectors"
-        ]
+        ],
+        peakWindow: openAiChatGptPeakEstimate
       },
       {
         id: "responses-api",
@@ -64,22 +62,19 @@ export const providers = [
         id: "claude-sonnet",
         name: "Claude Sonnet",
         description: "Tracks Claude.ai, Claude API, and model incidents mentioning Sonnet.",
-        componentKeywords: ["Claude", "api.anthropic.com", "claude.ai", "platform.claude.com", "Sonnet"],
-        usagePromotion: claudeMarch2026Promotion
+        componentKeywords: ["Claude", "api.anthropic.com", "claude.ai", "platform.claude.com", "Sonnet"]
       },
       {
         id: "claude-opus",
         name: "Claude Opus",
         description: "Tracks Claude services and incidents mentioning Opus.",
-        componentKeywords: ["Claude", "api.anthropic.com", "claude.ai", "Opus"],
-        usagePromotion: claudeMarch2026Promotion
+        componentKeywords: ["Claude", "api.anthropic.com", "claude.ai", "Opus"]
       },
       {
         id: "claude-code",
         name: "Claude Code",
         description: "Tracks the Claude Code component on Anthropic status.",
-        componentKeywords: ["Claude Code"],
-        usagePromotion: claudeMarch2026Promotion
+        componentKeywords: ["Claude Code"]
       }
     ]
   },

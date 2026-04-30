@@ -21,7 +21,6 @@ const indicatorLabels = {
   minor: "Minor issue",
   major: "Major issue",
   critical: "Critical issue",
-  page_only: "Official page",
   unknown: "Unknown"
 };
 
@@ -78,31 +77,8 @@ function formatWindowPoint(value, timezoneId) {
   }).format(date);
 }
 
-function formatShortDate(value, timezoneId) {
-  return formatDateTime(value, timezoneId).replace(",", "");
-}
-
-function getPromotionView(promotion, timezoneId) {
-  if (!promotion) return null;
-
-  const now = Date.now();
-  const startsAt = new Date(promotion.startsAt);
-  const endsAt = new Date(promotion.endsAt);
-  const state = now < startsAt.getTime() ? "Upcoming" : now > endsAt.getTime() ? "Ended" : "Active";
-  const sampleDate = "2026-03-16";
-  const peakStart = `${sampleDate}T${promotion.peakWindowUtc.start}:00Z`;
-  const peakEnd = `${sampleDate}T${promotion.peakWindowUtc.end}:00Z`;
-
-  return {
-    state,
-    peakWindow: `${formatWindowPoint(peakStart, timezoneId)} - ${formatWindowPoint(peakEnd, timezoneId)}`,
-    activeRange: `${formatShortDate(promotion.startsAt, timezoneId)} - ${formatShortDate(promotion.endsAt, timezoneId)}`
-  };
-}
-
 function statusClass(indicator) {
   if (indicator === "none" || indicator === "operational") return "good";
-  if (indicator === "page_only" || indicator === "official_page") return "info";
   if (indicator === "minor" || indicator === "degraded_performance") return "warn";
   if (indicator === "major" || indicator === "critical" || indicator === "partial_outage" || indicator === "major_outage") {
     return "bad";
@@ -110,8 +86,19 @@ function statusClass(indicator) {
   return "neutral";
 }
 
+function getPeakWindowView(peakWindow, timezoneId) {
+  if (!peakWindow) return null;
+  const sampleDate = "2026-01-06";
+  const start = `${sampleDate}T${peakWindow.windowUtc.start}:00Z`;
+  const end = `${sampleDate}T${peakWindow.windowUtc.end}:00Z`;
+
+  return {
+    peakWindow: `${formatWindowPoint(start, timezoneId)} - ${formatWindowPoint(end, timezoneId)}`,
+    offPeakWindow: `Outside ${formatWindowPoint(start, timezoneId)} - ${formatWindowPoint(end, timezoneId)}`
+  };
+}
+
 function formatStatus(value) {
-  if (value === "official_page") return "Open official page";
   return String(value ?? "unknown").replaceAll("_", " ");
 }
 
@@ -125,7 +112,7 @@ export default function Home() {
 
   const profile = useMemo(() => getProfile(provider, profileId), [provider, profileId]);
   const resolvedTimeZone = resolveTimeZone(timezoneId);
-  const promotionView = getPromotionView(profile.usagePromotion, timezoneId);
+  const peakWindowView = getPeakWindowView(profile.peakWindow, timezoneId);
 
   useEffect(() => {
     setProfileId(provider.modelProfiles[0].id);
@@ -234,34 +221,30 @@ export default function Home() {
           </dl>
         </article>
 
-        {profile.usagePromotion ? (
-          <article className="panel promotionPanel">
+        {profile.peakWindow ? (
+          <article className="panel peakPanel">
             <div className="sectionTitle">
-              <h2>Usage Window</h2>
-              <span>{promotionView.state}</span>
+              <h2>Peak Window</h2>
+              <span>Estimate</span>
             </div>
-            <div className="promoHero">
-              <strong>{profile.usagePromotion.bonusLabel}</strong>
-              <p>{profile.usagePromotion.title}</p>
+            <div className="peakHero">
+              <strong>{profile.peakWindow.label}</strong>
+              <p>{profile.peakWindow.title}</p>
             </div>
-            <dl className="promoFacts">
+            <dl className="peakFacts">
               <div>
-                <dt>Peak window</dt>
-                <dd>{promotionView.peakWindow}</dd>
+                <dt>Converted peak</dt>
+                <dd>{peakWindowView.peakWindow}</dd>
               </div>
               <div>
-                <dt>Off-peak bonus</dt>
-                <dd>Outside the peak window on weekdays, plus weekends during the promotion.</dd>
-              </div>
-              <div>
-                <dt>Promotion dates</dt>
-                <dd>{promotionView.activeRange}</dd>
+                <dt>Off-peak</dt>
+                <dd>{peakWindowView.offPeakWindow}</dd>
               </div>
             </dl>
-            <p className="promoCopy">{profile.usagePromotion.sourceNote}</p>
-            <p className="promoCopy">{profile.usagePromotion.planScope}</p>
-            <a className="inlineLink" href={profile.usagePromotion.sourceUrl} target="_blank" rel="noreferrer">
-              Read official Claude statement
+            <p className="peakCopy">{profile.peakWindow.sourceNote}</p>
+            <p className="peakCopy">{profile.peakWindow.offPeakNote}</p>
+            <a className="inlineLink" href={profile.peakWindow.sourceUrl} target="_blank" rel="noreferrer">
+              Read {profile.peakWindow.sourceLabel}
             </a>
           </article>
         ) : null}
@@ -302,11 +285,7 @@ export default function Home() {
               </a>
             ))}
             {!isLoading && !status?.incidents?.length ? (
-              <p className="empty">
-                {status?.indicator === "page_only"
-                  ? "No machine-readable incidents are published for this official page."
-                  : "No matching active incidents from the official source."}
-              </p>
+              <p className="empty">No matching active incidents from the official source.</p>
             ) : null}
           </div>
         </article>

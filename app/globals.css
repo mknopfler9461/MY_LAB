@@ -214,39 +214,39 @@ dd {
   padding: 20px;
 }
 
-.promotionPanel {
+.peakPanel {
   display: grid;
   align-content: start;
   gap: 16px;
 }
 
-.promoHero {
+.peakHero {
   padding: 16px;
   border: 1px solid rgba(124, 199, 216, 0.35);
   border-radius: 8px;
   background: rgba(124, 199, 216, 0.08);
 }
 
-.promoHero strong {
+.peakHero strong {
   display: block;
   margin-bottom: 6px;
   font-size: 1.25rem;
 }
 
-.promoHero p,
-.promoCopy {
+.peakHero p,
+.peakCopy {
   margin-bottom: 0;
   color: var(--muted);
   line-height: 1.55;
 }
 
-.promoFacts {
+.peakFacts {
   grid-template-columns: 1fr;
   gap: 10px;
   margin: 0;
 }
 
-.promoFacts div {
+.peakFacts div {
   min-height: 74px;
 }
 
