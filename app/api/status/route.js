@@ -88,17 +88,17 @@ function normalizePageOnly(provider, profile) {
     pageUrl: provider.statusPageUrl,
     checkedAt: new Date().toISOString(),
     updatedAt: null,
-    summary: "Open official status page",
-    indicator: "unknown",
+    summary: "Official status page available",
+    indicator: "page_only",
     components: profile.componentKeywords.map((keyword) => ({
       id: keyword.toLowerCase().replaceAll(" ", "-"),
       name: keyword,
-      status: "see_official_page",
+      status: "official_page",
       updatedAt: null
     })),
     incidents: [],
     note:
-      "Google AI Studio has a dedicated status page for AI Studio and the Gemini API, but it does not expose the same simple public JSON feed used by OpenAI and Anthropic. This view links to that official page instead of substituting Google Cloud incidents."
+      "Google AI Studio has a dedicated status page for AI Studio and the Gemini API, but it does not expose the same simple public JSON feed used by OpenAI and Anthropic. Open the official page for the live rendered status."
   };
 }
 

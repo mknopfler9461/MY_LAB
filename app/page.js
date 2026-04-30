@@ -19,6 +19,7 @@ const indicatorLabels = {
   minor: "Minor issue",
   major: "Major issue",
   critical: "Critical issue",
+  page_only: "Official page",
   unknown: "Unknown"
 };
 
@@ -50,11 +51,17 @@ function formatDateTime(value, timezoneId) {
 
 function statusClass(indicator) {
   if (indicator === "none" || indicator === "operational") return "good";
+  if (indicator === "page_only" || indicator === "official_page") return "info";
   if (indicator === "minor" || indicator === "degraded_performance") return "warn";
   if (indicator === "major" || indicator === "critical" || indicator === "partial_outage" || indicator === "major_outage") {
     return "bad";
   }
   return "neutral";
+}
+
+function formatStatus(value) {
+  if (value === "official_page") return "Open official page";
+  return String(value ?? "unknown").replaceAll("_", " ");
 }
 
 export default function Home() {
@@ -186,7 +193,7 @@ export default function Home() {
                 <span className={`dot ${statusClass(component.status)}`} />
                 <div>
                   <strong>{component.name}</strong>
-                  <small>{component.status.replaceAll("_", " ")}</small>
+                  <small>{formatStatus(component.status)}</small>
                 </div>
                 <time>{formatDateTime(component.updatedAt, timezoneId)}</time>
               </div>
@@ -210,7 +217,13 @@ export default function Home() {
                 <time>{formatDateTime(incident.updatedAt, timezoneId)}</time>
               </a>
             ))}
-            {!isLoading && !status?.incidents?.length ? <p className="empty">No matching active incidents from the official source.</p> : null}
+            {!isLoading && !status?.incidents?.length ? (
+              <p className="empty">
+                {status?.indicator === "page_only"
+                  ? "No machine-readable incidents are published for this official page."
+                  : "No matching active incidents from the official source."}
+              </p>
+            ) : null}
           </div>
         </article>
 
