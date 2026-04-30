@@ -64,14 +64,36 @@ export const providers = [
     ]
   },
   {
-    id: "google",
-    name: "Google Cloud",
+    id: "google-ai-studio",
+    name: "Google AI Studio",
+    statusPageUrl: "https://aistudio.google.com/status",
+    endpoint: null,
+    adapter: "page-only",
+    modelProfiles: [
+      {
+        id: "gemini-api",
+        name: "Gemini API",
+        description:
+          "Uses Google's dedicated AI Studio and Gemini API status page as the authoritative source.",
+        componentKeywords: ["Google AI Studio", "Gemini API"]
+      },
+      {
+        id: "ai-studio",
+        name: "AI Studio",
+        description: "Uses the dedicated Google AI Studio status page.",
+        componentKeywords: ["Google AI Studio", "AI Studio"]
+      }
+    ]
+  },
+  {
+    id: "google-cloud",
+    name: "Google Cloud / Vertex AI",
     statusPageUrl: "https://status.cloud.google.com/",
     endpoint: "https://status.cloud.google.com/incidents.json",
     adapter: "google-incidents",
     modelProfiles: [
       {
-        id: "gemini-api",
+        id: "vertex-gemini-api",
         name: "Vertex Gemini API",
         description: "Tracks Google Cloud incidents that list Vertex Gemini API or Gemini impact.",
         componentKeywords: ["Vertex Gemini API", "Gemini"]

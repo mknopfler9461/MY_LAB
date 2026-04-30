@@ -15,4 +15,5 @@ Open `http://localhost:3000`.
 
 - OpenAI: `https://status.openai.com/api/v2/summary.json`
 - Anthropic: `https://status.anthropic.com/api/v2/summary.json`
-- Google Cloud incidents: `https://status.cloud.google.com/incidents.json`
+- Google AI Studio and Gemini API: `https://aistudio.google.com/status`
+- Google Cloud / Vertex AI incidents: `https://status.cloud.google.com/incidents.json`
