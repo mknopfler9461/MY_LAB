@@ -10,18 +10,89 @@ const timezones = [
   { id: "America/Los_Angeles", label: "Los Angeles" },
   { id: "America/New_York", label: "New York" },
   { id: "Europe/London", label: "London" },
-  { id: "Australia/Sydney", label: "Sydney" },
-  { id: "GMT+11", label: "GMT+11 fixed" }
+  { id: "Europe/Paris", label: "Paris" },
+  { id: "Australia/Sydney", label: "Sydney" }
 ];
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const indicatorLabels = {
-  none: "Operational",
-  minor: "Minor issue",
-  major: "Major issue",
-  critical: "Critical issue",
-  unknown: "Unknown"
+const copy = {
+  en: {
+    language: "Language",
+    english: "English",
+    japanese: "Japanese",
+    eyebrow: "Official status monitor",
+    lede:
+      "Choose a provider, model profile, and timezone to read live signals from official status sources and compare peak-time windows.",
+    openOfficialPage: "Open official page",
+    provider: "Provider",
+    modelProfile: "Model profile",
+    timezone: "Timezone",
+    status: "Status",
+    checking: "Checking...",
+    retrieving: "Retrieving official status",
+    updated: "Updated",
+    checked: "Checked",
+    peakWindow: "Peak Window",
+    estimate: "Estimate",
+    officialCitation: "Official citation",
+    convertedPeak: "Converted peak",
+    offPeak: "Off-peak",
+    read: "Read",
+    components: "Components",
+    incidents: "Incidents",
+    sourceNote: "Source note",
+    waiting: "Waiting for the official status response.",
+    noComponents: "No matching official components were returned.",
+    noIncidents: "No matching active incidents from the official source.",
+    indicators: {
+      none: "Operational",
+      minor: "Minor issue",
+      major: "Major issue",
+      critical: "Critical issue",
+      unknown: "Unknown"
+    },
+    notPublished: "Not published",
+    outside: "Outside"
+  },
+  ja: {
+    language: "言語",
+    english: "英語",
+    japanese: "日本語",
+    eyebrow: "公式ステータスモニター",
+    lede:
+      "プロバイダー、モデル、タイムゾーンを選択して、公式ステータス情報とピーク時間帯を確認できます。",
+    openOfficialPage: "公式ページを開く",
+    provider: "プロバイダー",
+    modelProfile: "モデル",
+    timezone: "タイムゾーン",
+    status: "ステータス",
+    checking: "確認中...",
+    retrieving: "公式ステータスを取得中",
+    updated: "更新",
+    checked: "確認",
+    peakWindow: "ピーク時間帯",
+    estimate: "推定",
+    officialCitation: "公式記載",
+    convertedPeak: "変換後のピーク",
+    offPeak: "オフピーク",
+    read: "読む",
+    components: "コンポーネント",
+    incidents: "障害情報",
+    sourceNote: "出典メモ",
+    waiting: "公式ステータスの応答を待っています。",
+    noComponents: "該当する公式コンポーネントは返されませんでした。",
+    noIncidents: "公式ソースに該当するアクティブな障害情報はありません。",
+    indicators: {
+      none: "正常",
+      minor: "軽微な問題",
+      major: "重大な問題",
+      critical: "深刻な問題",
+      unknown: "不明"
+    },
+    notPublished: "未公開",
+    outside: "以下の時間帯以外"
+  }
 };
 
 function resolveTimeZone(timezoneId) {
@@ -31,10 +102,16 @@ function resolveTimeZone(timezoneId) {
   return timezoneId;
 }
 
-function formatDateTime(value, timezoneId) {
-  if (!value) return "Not published";
+function localizedText(value, lang, fallback = "") {
+  if (lang === "ja") return value?.ja ?? value?.descriptionJa ?? value?.titleJa ?? value?.labelJa ?? value?.sourceNoteJa ?? value?.offPeakNoteJa ?? value?.sourceLabelJa ?? fallback;
+  return value?.en ?? value?.description ?? value?.title ?? value?.label ?? value?.sourceNote ?? value?.offPeakNote ?? value?.sourceLabel ?? fallback;
+}
+
+function formatDateTime(value, timezoneId, lang) {
+  if (!value) return copy[lang].notPublished;
   const date = new Date(value);
   const resolved = resolveTimeZone(timezoneId);
+  const locale = lang === "ja" ? "ja-JP" : "en";
 
   if (resolved.startsWith("GMT")) {
     const sign = resolved.includes("-") ? -1 : 1;
@@ -43,7 +120,7 @@ function formatDateTime(value, timezoneId) {
     return `${shifted.toISOString().slice(0, 16).replace("T", " ")} ${resolved}`;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: resolved
@@ -57,10 +134,11 @@ function getFixedOffsetHours(timezoneId) {
   return sign * hours;
 }
 
-function formatWindowPoint(value, timezoneId) {
+function formatWindowPoint(value, timezoneId, lang) {
   const date = new Date(value);
   const resolved = resolveTimeZone(timezoneId);
   const offset = getFixedOffsetHours(resolved);
+  const locale = lang === "ja" ? "ja-JP" : "en";
 
   if (offset !== null) {
     const shifted = new Date(date.getTime() + offset * 60 * 60 * 1000);
@@ -69,7 +147,7 @@ function formatWindowPoint(value, timezoneId) {
     return `${day} ${time}`;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(locale, {
     weekday: "short",
     hour: "numeric",
     minute: "2-digit",
@@ -86,15 +164,17 @@ function statusClass(indicator) {
   return "neutral";
 }
 
-function getPeakWindowView(peakWindow, timezoneId) {
+function getPeakWindowView(peakWindow, timezoneId, lang) {
   if (!peakWindow) return null;
-  const sampleDate = "2026-01-06";
+  const sampleDate = peakWindow.sampleDate ?? "2026-01-06";
   const start = `${sampleDate}T${peakWindow.windowUtc.start}:00Z`;
   const end = `${sampleDate}T${peakWindow.windowUtc.end}:00Z`;
+  const startText = formatWindowPoint(start, timezoneId, lang);
+  const endText = formatWindowPoint(end, timezoneId, lang);
 
   return {
-    peakWindow: `${formatWindowPoint(start, timezoneId)} - ${formatWindowPoint(end, timezoneId)}`,
-    offPeakWindow: `Outside ${formatWindowPoint(start, timezoneId)} - ${formatWindowPoint(end, timezoneId)}`
+    peakWindow: `${startText} - ${endText}`,
+    offPeakWindow: `${copy[lang].outside} ${startText} - ${endText}`
   };
 }
 
@@ -107,12 +187,14 @@ export default function Home() {
   const provider = useMemo(() => getProvider(providerId), [providerId]);
   const [profileId, setProfileId] = useState(provider.modelProfiles[0].id);
   const [timezoneId, setTimezoneId] = useState("auto");
+  const [lang, setLang] = useState("en");
   const [status, setStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const t = copy[lang];
   const profile = useMemo(() => getProfile(provider, profileId), [provider, profileId]);
   const resolvedTimeZone = resolveTimeZone(timezoneId);
-  const peakWindowView = getPeakWindowView(profile.peakWindow, timezoneId);
+  const peakWindowView = getPeakWindowView(profile.peakWindow, timezoneId, lang);
 
   useEffect(() => {
     setProfileId(provider.modelProfiles[0].id);
@@ -151,20 +233,18 @@ export default function Home() {
     <main className="shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Official status monitor</p>
+          <p className="eyebrow">{t.eyebrow}</p>
           <h1>LLM Status</h1>
-          <p className="lede">
-            Choose a provider, model profile, and timezone to read live signals from official status sources without hardcoded peak-time claims.
-          </p>
+          <p className="lede">{t.lede}</p>
         </div>
         <a className="sourceLink" href={provider.statusPageUrl} target="_blank" rel="noreferrer">
-          Open official page
+          {t.openOfficialPage}
         </a>
       </section>
 
       <section className="controlPanel" aria-label="Status controls">
         <label>
-          <span>Provider</span>
+          <span>{t.provider}</span>
           <select value={providerId} onChange={(event) => setProviderId(event.target.value)}>
             {providers.map((item) => (
               <option key={item.id} value={item.id}>
@@ -175,7 +255,7 @@ export default function Home() {
         </label>
 
         <label>
-          <span>Model profile</span>
+          <span>{t.modelProfile}</span>
           <select value={profileId} onChange={(event) => setProfileId(event.target.value)}>
             {provider.modelProfiles.map((item) => (
               <option key={item.id} value={item.id}>
@@ -186,7 +266,7 @@ export default function Home() {
         </label>
 
         <label>
-          <span>Timezone</span>
+          <span>{t.timezone}</span>
           <select value={timezoneId} onChange={(event) => setTimezoneId(event.target.value)}>
             {timezones.map((item) => (
               <option key={item.id} value={item.id}>
@@ -195,27 +275,35 @@ export default function Home() {
             ))}
           </select>
         </label>
+
+        <label>
+          <span>{t.language}</span>
+          <select value={lang} onChange={(event) => setLang(event.target.value)}>
+            <option value="en">{t.english}</option>
+            <option value="ja">{t.japanese}</option>
+          </select>
+        </label>
       </section>
 
       <section className="statusGrid">
         <article className={`statusCard ${statusClass(status?.indicator)}`}>
           <div className="cardHeader">
-            <span>Status</span>
-            <strong>{isLoading ? "Checking..." : indicatorLabels[status?.indicator] ?? status?.summary}</strong>
+            <span>{t.status}</span>
+            <strong>{isLoading ? t.checking : t.indicators[status?.indicator] ?? status?.summary}</strong>
           </div>
-          <h2>{isLoading ? "Retrieving official status" : status?.summary}</h2>
-          <p>{profile.description}</p>
+          <h2>{isLoading ? t.retrieving : status?.summary}</h2>
+          <p>{localizedText(profile, lang, profile.description)}</p>
           <dl>
             <div>
-              <dt>Updated</dt>
-              <dd>{formatDateTime(status?.updatedAt, timezoneId)}</dd>
+              <dt>{t.updated}</dt>
+              <dd>{formatDateTime(status?.updatedAt, timezoneId, lang)}</dd>
             </div>
             <div>
-              <dt>Checked</dt>
-              <dd>{formatDateTime(status?.checkedAt, timezoneId)}</dd>
+              <dt>{t.checked}</dt>
+              <dd>{formatDateTime(status?.checkedAt, timezoneId, lang)}</dd>
             </div>
             <div>
-              <dt>Timezone</dt>
+              <dt>{t.timezone}</dt>
               <dd>{resolvedTimeZone}</dd>
             </div>
           </dl>
@@ -224,34 +312,34 @@ export default function Home() {
         {profile.peakWindow ? (
           <article className="panel peakPanel">
             <div className="sectionTitle">
-              <h2>Peak Window</h2>
-              <span>Estimate</span>
+              <h2>{t.peakWindow}</h2>
+              <span>{profile.peakWindow.kind === "official" ? t.officialCitation : t.estimate}</span>
             </div>
             <div className="peakHero">
-              <strong>{profile.peakWindow.label}</strong>
-              <p>{profile.peakWindow.title}</p>
+              <strong>{localizedText({ label: profile.peakWindow.label, labelJa: profile.peakWindow.labelJa }, lang, profile.peakWindow.label)}</strong>
+              <p>{localizedText({ title: profile.peakWindow.title, titleJa: profile.peakWindow.titleJa }, lang, profile.peakWindow.title)}</p>
             </div>
             <dl className="peakFacts">
               <div>
-                <dt>Converted peak</dt>
+                <dt>{t.convertedPeak}</dt>
                 <dd>{peakWindowView.peakWindow}</dd>
               </div>
               <div>
-                <dt>Off-peak</dt>
+                <dt>{t.offPeak}</dt>
                 <dd>{peakWindowView.offPeakWindow}</dd>
               </div>
             </dl>
-            <p className="peakCopy">{profile.peakWindow.sourceNote}</p>
-            <p className="peakCopy">{profile.peakWindow.offPeakNote}</p>
+            <p className="peakCopy">{localizedText({ sourceNote: profile.peakWindow.sourceNote, sourceNoteJa: profile.peakWindow.sourceNoteJa }, lang, profile.peakWindow.sourceNote)}</p>
+            <p className="peakCopy">{localizedText({ offPeakNote: profile.peakWindow.offPeakNote, offPeakNoteJa: profile.peakWindow.offPeakNoteJa }, lang, profile.peakWindow.offPeakNote)}</p>
             <a className="inlineLink" href={profile.peakWindow.sourceUrl} target="_blank" rel="noreferrer">
-              Read {profile.peakWindow.sourceLabel}
+              {t.read} {localizedText({ sourceLabel: profile.peakWindow.sourceLabel, sourceLabelJa: profile.peakWindow.sourceLabelJa }, lang, profile.peakWindow.sourceLabel)}
             </a>
           </article>
         ) : null}
 
         <article className="panel">
           <div className="sectionTitle">
-            <h2>Components</h2>
+            <h2>{t.components}</h2>
             <span>{status?.components?.length ?? 0}</span>
           </div>
           <div className="list">
@@ -262,16 +350,16 @@ export default function Home() {
                   <strong>{component.name}</strong>
                   <small>{formatStatus(component.status)}</small>
                 </div>
-                <time>{formatDateTime(component.updatedAt, timezoneId)}</time>
+                <time>{formatDateTime(component.updatedAt, timezoneId, lang)}</time>
               </div>
             ))}
-            {!isLoading && !status?.components?.length ? <p className="empty">No matching official components were returned.</p> : null}
+            {!isLoading && !status?.components?.length ? <p className="empty">{t.noComponents}</p> : null}
           </div>
         </article>
 
         <article className="panel incidents">
           <div className="sectionTitle">
-            <h2>Incidents</h2>
+            <h2>{t.incidents}</h2>
             <span>{status?.incidents?.length ?? 0}</span>
           </div>
           <div className="list">
@@ -281,18 +369,18 @@ export default function Home() {
                 <span>
                   {incident.status} · {incident.impact}
                 </span>
-                <time>{formatDateTime(incident.updatedAt, timezoneId)}</time>
+                <time>{formatDateTime(incident.updatedAt, timezoneId, lang)}</time>
               </a>
             ))}
             {!isLoading && !status?.incidents?.length ? (
-              <p className="empty">No matching active incidents from the official source.</p>
+              <p className="empty">{t.noIncidents}</p>
             ) : null}
           </div>
         </article>
 
         <aside className="note">
-          <strong>Source note</strong>
-          <p>{status?.note ?? "Waiting for the official status response."}</p>
+          <strong>{t.sourceNote}</strong>
+          <p>{status?.note ?? t.waiting}</p>
         </aside>
       </section>
     </main>
