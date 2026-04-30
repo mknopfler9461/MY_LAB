@@ -1,0 +1,7 @@
+.next/
+.npm-cache/
+node_modules/
+.git.broken-*/
+
+.env*.local
+*.log
