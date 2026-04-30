@@ -214,6 +214,52 @@ dd {
   padding: 20px;
 }
 
+.promotionPanel {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.promoHero {
+  padding: 16px;
+  border: 1px solid rgba(124, 199, 216, 0.35);
+  border-radius: 8px;
+  background: rgba(124, 199, 216, 0.08);
+}
+
+.promoHero strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.25rem;
+}
+
+.promoHero p,
+.promoCopy {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.promoFacts {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0;
+}
+
+.promoFacts div {
+  min-height: 74px;
+}
+
+.inlineLink {
+  color: var(--cyan);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
 .sectionTitle {
   margin-bottom: 14px;
 }

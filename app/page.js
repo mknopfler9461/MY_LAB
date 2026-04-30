@@ -14,6 +14,8 @@ const timezones = [
   { id: "GMT+11", label: "GMT+11 fixed" }
 ];
 
+const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 const indicatorLabels = {
   none: "Operational",
   minor: "Minor issue",
@@ -49,6 +51,55 @@ function formatDateTime(value, timezoneId) {
   }).format(date);
 }
 
+function getFixedOffsetHours(timezoneId) {
+  if (!timezoneId.startsWith("GMT")) return null;
+  const sign = timezoneId.includes("-") ? -1 : 1;
+  const hours = Number(timezoneId.replace("GMT", "").replace("+", "").replace("-", "")) || 0;
+  return sign * hours;
+}
+
+function formatWindowPoint(value, timezoneId) {
+  const date = new Date(value);
+  const resolved = resolveTimeZone(timezoneId);
+  const offset = getFixedOffsetHours(resolved);
+
+  if (offset !== null) {
+    const shifted = new Date(date.getTime() + offset * 60 * 60 * 1000);
+    const day = weekdayLabels[shifted.getUTCDay()];
+    const time = shifted.toISOString().slice(11, 16);
+    return `${day} ${time}`;
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: resolved
+  }).format(date);
+}
+
+function formatShortDate(value, timezoneId) {
+  return formatDateTime(value, timezoneId).replace(",", "");
+}
+
+function getPromotionView(promotion, timezoneId) {
+  if (!promotion) return null;
+
+  const now = Date.now();
+  const startsAt = new Date(promotion.startsAt);
+  const endsAt = new Date(promotion.endsAt);
+  const state = now < startsAt.getTime() ? "Upcoming" : now > endsAt.getTime() ? "Ended" : "Active";
+  const sampleDate = "2026-03-16";
+  const peakStart = `${sampleDate}T${promotion.peakWindowUtc.start}:00Z`;
+  const peakEnd = `${sampleDate}T${promotion.peakWindowUtc.end}:00Z`;
+
+  return {
+    state,
+    peakWindow: `${formatWindowPoint(peakStart, timezoneId)} - ${formatWindowPoint(peakEnd, timezoneId)}`,
+    activeRange: `${formatShortDate(promotion.startsAt, timezoneId)} - ${formatShortDate(promotion.endsAt, timezoneId)}`
+  };
+}
+
 function statusClass(indicator) {
   if (indicator === "none" || indicator === "operational") return "good";
   if (indicator === "page_only" || indicator === "official_page") return "info";
@@ -74,6 +125,7 @@ export default function Home() {
 
   const profile = useMemo(() => getProfile(provider, profileId), [provider, profileId]);
   const resolvedTimeZone = resolveTimeZone(timezoneId);
+  const promotionView = getPromotionView(profile.usagePromotion, timezoneId);
 
   useEffect(() => {
     setProfileId(provider.modelProfiles[0].id);
@@ -181,6 +233,38 @@ export default function Home() {
             </div>
           </dl>
         </article>
+
+        {profile.usagePromotion ? (
+          <article className="panel promotionPanel">
+            <div className="sectionTitle">
+              <h2>Usage Window</h2>
+              <span>{promotionView.state}</span>
+            </div>
+            <div className="promoHero">
+              <strong>{profile.usagePromotion.bonusLabel}</strong>
+              <p>{profile.usagePromotion.title}</p>
+            </div>
+            <dl className="promoFacts">
+              <div>
+                <dt>Peak window</dt>
+                <dd>{promotionView.peakWindow}</dd>
+              </div>
+              <div>
+                <dt>Off-peak bonus</dt>
+                <dd>Outside the peak window on weekdays, plus weekends during the promotion.</dd>
+              </div>
+              <div>
+                <dt>Promotion dates</dt>
+                <dd>{promotionView.activeRange}</dd>
+              </div>
+            </dl>
+            <p className="promoCopy">{profile.usagePromotion.sourceNote}</p>
+            <p className="promoCopy">{profile.usagePromotion.planScope}</p>
+            <a className="inlineLink" href={profile.usagePromotion.sourceUrl} target="_blank" rel="noreferrer">
+              Read official Claude statement
+            </a>
+          </article>
+        ) : null}
 
         <article className="panel">
           <div className="sectionTitle">

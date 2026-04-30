@@ -81,27 +81,6 @@ function normalizeGoogleIncidents(payload, provider, profile) {
   };
 }
 
-function normalizePageOnly(provider, profile) {
-  return {
-    provider: provider.name,
-    profile: profile.name,
-    pageUrl: provider.statusPageUrl,
-    checkedAt: new Date().toISOString(),
-    updatedAt: null,
-    summary: "Official status page available",
-    indicator: "page_only",
-    components: profile.componentKeywords.map((keyword) => ({
-      id: keyword.toLowerCase().replaceAll(" ", "-"),
-      name: keyword,
-      status: "official_page",
-      updatedAt: null
-    })),
-    incidents: [],
-    note:
-      "Google AI Studio has a dedicated status page for AI Studio and the Gemini API, but it does not expose the same simple public JSON feed used by OpenAI and Anthropic. Open the official page for the live rendered status."
-  };
-}
-
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const provider = getProvider(searchParams.get("provider"));
@@ -110,14 +89,6 @@ export async function GET(request) {
   const timeout = setTimeout(() => controller.abort(), 8000);
 
   try {
-    if (provider.adapter === "page-only") {
-      return NextResponse.json(normalizePageOnly(provider, profile), {
-        headers: {
-          "Cache-Control": `s-maxage=${CACHE_SECONDS}, stale-while-revalidate=300`
-        }
-      });
-    }
-
     const response = await fetch(provider.endpoint, {
       headers: { accept: "application/json" },
       next: { revalidate: CACHE_SECONDS },
