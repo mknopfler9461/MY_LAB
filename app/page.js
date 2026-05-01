@@ -4,23 +4,31 @@ import { useEffect, useMemo, useState } from "react";
 import { defaultProviderId, getProfile, getProvider, providers } from "../data/providers";
 
 const timezones = [
-  { id: "auto", label: "Auto", labelJa: "自動" },
-  { id: "UTC", label: "UTC", labelJa: "協定世界時" },
-  { id: "Asia/Tokyo", label: "Tokyo", labelJa: "東京" },
-  { id: "America/Los_Angeles", label: "Los Angeles", labelJa: "ロサンゼルス" },
-  { id: "America/New_York", label: "New York", labelJa: "ニューヨーク" },
-  { id: "Europe/London", label: "London", labelJa: "ロンドン" },
-  { id: "Europe/Paris", label: "Paris", labelJa: "パリ" },
-  { id: "Australia/Sydney", label: "Sydney", labelJa: "シドニー" }
+  { id: "auto", labels: { en: "Auto", ja: "自動", zh: "自动" } },
+  { id: "UTC", labels: { en: "UTC", ja: "協定世界時", zh: "协调世界时" } },
+  { id: "Asia/Tokyo", labels: { en: "Tokyo", ja: "東京", zh: "东京" } },
+  { id: "Asia/Shanghai", labels: { en: "Shanghai", ja: "上海", zh: "上海" } },
+  { id: "Asia/Kolkata", labels: { en: "Bangalore", ja: "ベンガルール", zh: "班加罗尔" } },
+  { id: "Asia/Dubai", labels: { en: "Dubai", ja: "ドバイ", zh: "迪拜" } },
+  { id: "America/Los_Angeles", labels: { en: "Los Angeles", ja: "ロサンゼルス", zh: "洛杉矶" } },
+  { id: "America/New_York", labels: { en: "New York", ja: "ニューヨーク", zh: "纽约" } },
+  { id: "Europe/London", labels: { en: "London", ja: "ロンドン", zh: "伦敦" } },
+  { id: "Europe/Paris", labels: { en: "Paris", ja: "パリ", zh: "巴黎" } },
+  { id: "Australia/Sydney", labels: { en: "Sydney", ja: "シドニー", zh: "悉尼" } }
 ];
 
-const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekdayLabels = {
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  ja: ["日", "月", "火", "水", "木", "金", "土"],
+  zh: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+};
 
 const copy = {
   en: {
     language: "Language",
     english: "English",
     japanese: "Japanese",
+    chinese: "Simplified Chinese",
     eyebrow: "Official status monitor",
     title: "LLM Status",
     lede:
@@ -34,6 +42,7 @@ const copy = {
     retrieving: "Retrieving official status",
     updated: "Updated",
     checked: "Checked",
+    localTime: "Local time",
     peakWindow: "Peak Window",
     estimate: "Estimate",
     officialCitation: "Official citation",
@@ -63,6 +72,15 @@ const copy = {
       critical: "Critical issue",
       unknown: "Unknown"
     },
+    statusSummaries: {
+      none: "All tracked services look operational",
+      minor: "Minor issue reported",
+      major: "Major issue reported",
+      critical: "Critical issue reported",
+      unknown: "Status unavailable",
+      activeGemini: "Active Gemini-related incident found",
+      noActiveGemini: "No active Gemini-related incidents found"
+    },
     notPublished: "Not published",
     outside: "Outside"
   },
@@ -70,6 +88,7 @@ const copy = {
     language: "言語",
     english: "英語",
     japanese: "日本語",
+    chinese: "簡体字中国語",
     eyebrow: "公式ステータスモニター",
     title: "LLMステータス",
     lede:
@@ -83,6 +102,7 @@ const copy = {
     retrieving: "公式ステータスを取得中",
     updated: "更新",
     checked: "確認",
+    localTime: "現地時刻",
     peakWindow: "ピーク時間帯",
     estimate: "推定",
     officialCitation: "公式記載",
@@ -112,10 +132,88 @@ const copy = {
       critical: "深刻な問題",
       unknown: "不明"
     },
+    statusSummaries: {
+      none: "追跡対象サービスは正常に見えます",
+      minor: "軽微な問題が報告されています",
+      major: "重大な問題が報告されています",
+      critical: "深刻な問題が報告されています",
+      unknown: "ステータスを取得できません",
+      activeGemini: "Gemini関連のアクティブな障害があります",
+      noActiveGemini: "Gemini関連のアクティブな障害はありません"
+    },
     notPublished: "未公開",
     outside: "以下の時間帯以外"
+  },
+  zh: {
+    language: "显示语言",
+    english: "英语",
+    japanese: "日语",
+    chinese: "简体中文",
+    eyebrow: "官方状态监控",
+    title: "LLM 状态",
+    lede:
+      "选择供应商、模型配置和时区，读取官方状态来源的实时信号，并对照高峰时段窗口。",
+    openOfficialPage: "打开官方页面",
+    provider: "供应商",
+    modelProfile: "模型配置",
+    timezone: "时区",
+    status: "状态",
+    checking: "检查中...",
+    retrieving: "正在获取官方状态",
+    updated: "更新于",
+    checked: "检查于",
+    localTime: "当地时间",
+    peakWindow: "高峰时段",
+    estimate: "估算",
+    officialCitation: "官方引用",
+    convertedPeak: "换算后高峰",
+    offPeak: "非高峰",
+    countdownPeak: "距离下一次高峰",
+    countdownOffPeak: "距离非高峰",
+    peakNow: "当前为高峰",
+    offPeakNow: "当前为非高峰",
+    read: "阅读",
+    components: "组件",
+    incidents: "事件",
+    sourceNote: "来源说明",
+    waiting: "正在等待官方状态响应。",
+    noComponents: "官方来源未返回匹配组件。",
+    noIncidents: "官方来源没有匹配的活跃事件。",
+    statusNotes: {
+      matched_components: "已筛选出与此模型配置匹配的官方组件。",
+      provider_rollup: "未找到公开的模型专属组件，因此显示供应商整体状态。",
+      google_cloud_incidents: "Google 发布 Cloud 事件源；此视图筛选 Gemini 相关记录。",
+      fetch_error: "无法获取官方状态来源。"
+    },
+    indicators: {
+      none: "运行正常",
+      minor: "轻微问题",
+      major: "重大问题",
+      critical: "严重问题",
+      unknown: "未知"
+    },
+    statusSummaries: {
+      none: "跟踪的服务看起来运行正常",
+      minor: "报告了轻微问题",
+      major: "报告了重大问题",
+      critical: "报告了严重问题",
+      unknown: "状态不可用",
+      activeGemini: "发现 Gemini 相关活跃事件",
+      noActiveGemini: "未发现 Gemini 相关活跃事件"
+    },
+    notPublished: "未发布",
+    outside: "以下时段之外"
   }
 };
+
+function getBrowserLanguage() {
+  if (typeof navigator === "undefined") return "en";
+  const language = navigator.languages?.[0] ?? navigator.language ?? "en";
+  const normalized = language.toLowerCase();
+  if (normalized.startsWith("zh")) return "zh";
+  if (normalized.startsWith("ja")) return "ja";
+  return "en";
+}
 
 function resolveTimeZone(timezoneId) {
   if (timezoneId === "auto") {
@@ -125,6 +223,7 @@ function resolveTimeZone(timezoneId) {
 }
 
 function localizedText(value, lang, fallback = "") {
+  if (lang === "zh") return value?.zh ?? value?.descriptionZh ?? value?.titleZh ?? value?.labelZh ?? value?.sourceNoteZh ?? value?.offPeakNoteZh ?? value?.sourceLabelZh ?? fallback;
   if (lang === "ja") return value?.ja ?? value?.descriptionJa ?? value?.titleJa ?? value?.labelJa ?? value?.sourceNoteJa ?? value?.offPeakNoteJa ?? value?.sourceLabelJa ?? fallback;
   return value?.en ?? value?.description ?? value?.title ?? value?.label ?? value?.sourceNote ?? value?.offPeakNote ?? value?.sourceLabel ?? fallback;
 }
@@ -133,7 +232,7 @@ function formatDateTime(value, timezoneId, lang) {
   if (!value) return copy[lang].notPublished;
   const date = new Date(value);
   const resolved = resolveTimeZone(timezoneId);
-  const locale = lang === "ja" ? "ja-JP" : "en";
+  const locale = lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en";
 
   if (resolved.startsWith("GMT")) {
     const sign = resolved.includes("-") ? -1 : 1;
@@ -178,11 +277,11 @@ function formatWindowPoint(value, timezoneId, lang) {
   const date = new Date(value);
   const resolved = resolveTimeZone(timezoneId);
   const offset = getFixedOffsetHours(resolved);
-  const locale = lang === "ja" ? "ja-JP" : "en";
+  const locale = lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en";
 
   if (offset !== null) {
     const shifted = new Date(date.getTime() + offset * 60 * 60 * 1000);
-    const day = weekdayLabels[shifted.getUTCDay()];
+    const day = weekdayLabels[lang][shifted.getUTCDay()];
     const time = shifted.toISOString().slice(11, 16);
     return `${day} ${time}`;
   }
@@ -193,6 +292,22 @@ function formatWindowPoint(value, timezoneId, lang) {
     minute: "2-digit",
     timeZone: resolved
   }).format(date);
+}
+
+function getTimezoneLabel(timezoneId, lang) {
+  const timezone = timezones.find((item) => item.id === timezoneId);
+  return timezone?.labels?.[lang] ?? timezone?.labels?.en ?? timezoneId;
+}
+
+function getStatusHeadline(status, providerId, lang) {
+  if (!status) return copy[lang].waiting;
+  if (status.noteCode === "fetch_error") return copy[lang].statusSummaries.unknown;
+  if (providerId === "google-cloud") {
+    return status.indicator === "none"
+      ? copy[lang].statusSummaries.noActiveGemini
+      : copy[lang].statusSummaries.activeGemini;
+  }
+  return copy[lang].statusSummaries[status.indicator] ?? status.summary ?? copy[lang].statusSummaries.unknown;
 }
 
 function statusClass(indicator) {
@@ -274,8 +389,17 @@ export default function Home() {
   const t = copy[lang];
   const profile = useMemo(() => getProfile(provider, profileId), [provider, profileId]);
   const resolvedTimeZone = resolveTimeZone(timezoneId);
+  const timezoneDisplay = `${getTimezoneLabel(timezoneId, lang)} (${resolvedTimeZone})`;
   const peakWindowView = getPeakWindowView(profile.peakWindow, timezoneId, lang);
   const peakCountdown = getPeakCountdown(profile.peakWindow, now);
+
+  useEffect(() => {
+    setLang(getBrowserLanguage());
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang === "ja" ? "ja" : "en";
+  }, [lang]);
 
   useEffect(() => {
     setProfileId(provider.modelProfiles[0].id);
@@ -356,7 +480,7 @@ export default function Home() {
           <select value={timezoneId} onChange={(event) => setTimezoneId(event.target.value)}>
             {timezones.map((item) => (
               <option key={item.id} value={item.id}>
-                {lang === "ja" ? item.labelJa : item.label}
+                {item.labels[lang] ?? item.labels.en}
               </option>
             ))}
           </select>
@@ -367,6 +491,7 @@ export default function Home() {
           <select value={lang} onChange={(event) => setLang(event.target.value)}>
             <option value="en">{t.english}</option>
             <option value="ja">{t.japanese}</option>
+            <option value="zh">{t.chinese}</option>
           </select>
         </label>
       </section>
@@ -377,7 +502,7 @@ export default function Home() {
             <span>{t.status}</span>
             <strong>{isLoading ? t.checking : t.indicators[status?.indicator] ?? status?.summary}</strong>
           </div>
-          <h2>{isLoading ? t.retrieving : status?.summary}</h2>
+          <h2>{isLoading ? t.retrieving : getStatusHeadline(status, providerId, lang)}</h2>
           <p>{localizedText(profile, lang, profile.description)}</p>
           <dl>
             <div>
@@ -390,7 +515,11 @@ export default function Home() {
             </div>
             <div>
               <dt>{t.timezone}</dt>
-              <dd>{resolvedTimeZone}</dd>
+              <dd>{timezoneDisplay}</dd>
+            </div>
+            <div>
+              <dt>{t.localTime}</dt>
+              <dd>{formatDateTime(now, timezoneId, lang)}</dd>
             </div>
           </dl>
         </article>
@@ -402,8 +531,8 @@ export default function Home() {
               <span>{profile.peakWindow.kind === "official" ? t.officialCitation : t.estimate}</span>
             </div>
             <div className="peakHero">
-              <strong>{localizedText({ label: profile.peakWindow.label, labelJa: profile.peakWindow.labelJa }, lang, profile.peakWindow.label)}</strong>
-              <p>{localizedText({ title: profile.peakWindow.title, titleJa: profile.peakWindow.titleJa }, lang, profile.peakWindow.title)}</p>
+              <strong>{localizedText({ label: profile.peakWindow.label, labelJa: profile.peakWindow.labelJa, labelZh: profile.peakWindow.labelZh }, lang, profile.peakWindow.label)}</strong>
+              <p>{localizedText({ title: profile.peakWindow.title, titleJa: profile.peakWindow.titleJa, titleZh: profile.peakWindow.titleZh }, lang, profile.peakWindow.title)}</p>
             </div>
             {peakCountdown ? (
               <div className={`countdown ${peakCountdown.isPeakNow ? "isPeak" : "isOffPeak"}`}>
@@ -424,10 +553,10 @@ export default function Home() {
                 <dd>{peakWindowView.offPeakWindow}</dd>
               </div>
             </dl>
-            <p className="peakCopy">{localizedText({ sourceNote: profile.peakWindow.sourceNote, sourceNoteJa: profile.peakWindow.sourceNoteJa }, lang, profile.peakWindow.sourceNote)}</p>
-            <p className="peakCopy">{localizedText({ offPeakNote: profile.peakWindow.offPeakNote, offPeakNoteJa: profile.peakWindow.offPeakNoteJa }, lang, profile.peakWindow.offPeakNote)}</p>
+            <p className="peakCopy">{localizedText({ sourceNote: profile.peakWindow.sourceNote, sourceNoteJa: profile.peakWindow.sourceNoteJa, sourceNoteZh: profile.peakWindow.sourceNoteZh }, lang, profile.peakWindow.sourceNote)}</p>
+            <p className="peakCopy">{localizedText({ offPeakNote: profile.peakWindow.offPeakNote, offPeakNoteJa: profile.peakWindow.offPeakNoteJa, offPeakNoteZh: profile.peakWindow.offPeakNoteZh }, lang, profile.peakWindow.offPeakNote)}</p>
             <a className="inlineLink" href={profile.peakWindow.sourceUrl} target="_blank" rel="noreferrer">
-              {t.read} {localizedText({ sourceLabel: profile.peakWindow.sourceLabel, sourceLabelJa: profile.peakWindow.sourceLabelJa }, lang, profile.peakWindow.sourceLabel)}
+              {t.read} {localizedText({ sourceLabel: profile.peakWindow.sourceLabel, sourceLabelJa: profile.peakWindow.sourceLabelJa, sourceLabelZh: profile.peakWindow.sourceLabelZh }, lang, profile.peakWindow.sourceLabel)}
             </a>
           </article>
         ) : null}
