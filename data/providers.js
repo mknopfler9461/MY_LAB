@@ -8,6 +8,7 @@ const openAiChatGptPeakEstimate = {
   sourceLabel: "OpenAI Help Center",
   sourceLabelJa: "OpenAIヘルプセンター",
   sampleDate: "2026-01-06",
+  activeDaysUtc: [0, 1, 2, 3, 4, 5, 6],
   windowUtc: {
     start: "01:00",
     end: "10:00"
@@ -30,6 +31,7 @@ const claudePeakWindow = {
   sourceLabel: "Claude support article",
   sourceLabelJa: "Claudeサポート記事",
   sampleDate: "2026-03-16",
+  activeDaysUtc: [1, 2, 3, 4, 5],
   windowUtc: {
     start: "12:00",
     end: "18:00"

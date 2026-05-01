@@ -38,6 +38,10 @@ const copy = {
     officialCitation: "Official citation",
     convertedPeak: "Converted peak",
     offPeak: "Off-peak",
+    countdownPeak: "Next peak in",
+    countdownOffPeak: "Off-peak in",
+    peakNow: "Peak now",
+    offPeakNow: "Off-peak now",
     read: "Read",
     components: "Components",
     incidents: "Incidents",
@@ -82,6 +86,10 @@ const copy = {
     officialCitation: "公式記載",
     convertedPeak: "変換後のピーク",
     offPeak: "オフピーク",
+    countdownPeak: "次のピークまで",
+    countdownOffPeak: "オフピークまで",
+    peakNow: "ピーク中",
+    offPeakNow: "オフピーク中",
     read: "読む",
     components: "コンポーネント",
     incidents: "障害情報",
@@ -146,6 +154,24 @@ function getFixedOffsetHours(timezoneId) {
   return sign * hours;
 }
 
+function parseUtcTime(value) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return { hours, minutes };
+}
+
+function createUtcDate(baseDate, timeValue, dayOffset = 0) {
+  const time = parseUtcTime(timeValue);
+  return new Date(Date.UTC(
+    baseDate.getUTCFullYear(),
+    baseDate.getUTCMonth(),
+    baseDate.getUTCDate() + dayOffset,
+    time.hours,
+    time.minutes,
+    0,
+    0
+  ));
+}
+
 function formatWindowPoint(value, timezoneId, lang) {
   const date = new Date(value);
   const resolved = resolveTimeZone(timezoneId);
@@ -190,6 +216,40 @@ function getPeakWindowView(peakWindow, timezoneId, lang) {
   };
 }
 
+function getPeakCountdown(peakWindow, now = new Date()) {
+  if (!peakWindow?.windowUtc) return null;
+
+  const activeDays = peakWindow.activeDaysUtc ?? [0, 1, 2, 3, 4, 5, 6];
+  const windows = [];
+
+  for (let dayOffset = -1; dayOffset <= 8; dayOffset += 1) {
+    const start = createUtcDate(now, peakWindow.windowUtc.start, dayOffset);
+    let end = createUtcDate(now, peakWindow.windowUtc.end, dayOffset);
+
+    if (end <= start) {
+      end = createUtcDate(now, peakWindow.windowUtc.end, dayOffset + 1);
+    }
+
+    if (activeDays.includes(start.getUTCDay())) {
+      windows.push({ start, end });
+    }
+  }
+
+  const currentWindow = windows.find((window) => now >= window.start && now < window.end);
+  const target = currentWindow?.end ?? windows.find((window) => window.start > now)?.start;
+
+  if (!target) return null;
+
+  const minutesUntil = Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 60000));
+  const hours = Math.floor(minutesUntil / 60);
+  const minutes = minutesUntil % 60;
+
+  return {
+    isPeakNow: Boolean(currentWindow),
+    value: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
+  };
+}
+
 function formatStatus(value) {
   return String(value ?? "unknown").replaceAll("_", " ");
 }
@@ -207,15 +267,22 @@ export default function Home() {
   const [lang, setLang] = useState("en");
   const [status, setStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [now, setNow] = useState(() => new Date());
 
   const t = copy[lang];
   const profile = useMemo(() => getProfile(provider, profileId), [provider, profileId]);
   const resolvedTimeZone = resolveTimeZone(timezoneId);
   const peakWindowView = getPeakWindowView(profile.peakWindow, timezoneId, lang);
+  const peakCountdown = getPeakCountdown(profile.peakWindow, now);
 
   useEffect(() => {
     setProfileId(provider.modelProfiles[0].id);
   }, [providerId, provider.modelProfiles]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -336,6 +403,15 @@ export default function Home() {
               <strong>{localizedText({ label: profile.peakWindow.label, labelJa: profile.peakWindow.labelJa }, lang, profile.peakWindow.label)}</strong>
               <p>{localizedText({ title: profile.peakWindow.title, titleJa: profile.peakWindow.titleJa }, lang, profile.peakWindow.title)}</p>
             </div>
+            {peakCountdown ? (
+              <div className={`countdown ${peakCountdown.isPeakNow ? "isPeak" : "isOffPeak"}`}>
+                <div>
+                  <span>{peakCountdown.isPeakNow ? t.countdownOffPeak : t.countdownPeak}</span>
+                  <strong>{peakCountdown.value}</strong>
+                </div>
+                <em>{peakCountdown.isPeakNow ? t.peakNow : t.offPeakNow}</em>
+              </div>
+            ) : null}
             <dl className="peakFacts">
               <div>
                 <dt>{t.convertedPeak}</dt>

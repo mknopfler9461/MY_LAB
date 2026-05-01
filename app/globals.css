@@ -240,6 +240,53 @@ dd {
   line-height: 1.55;
 }
 
+.countdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid rgba(126, 220, 143, 0.45);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(126, 220, 143, 0.18), rgba(124, 199, 216, 0.1)),
+    var(--surface-2);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+}
+
+.countdown.isPeak {
+  border-color: rgba(255, 209, 102, 0.55);
+  background:
+    linear-gradient(135deg, rgba(255, 209, 102, 0.2), rgba(255, 123, 114, 0.1)),
+    var(--surface-2);
+}
+
+.countdown span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.countdown strong {
+  font-size: clamp(2.6rem, 8vw, 4.2rem);
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+
+.countdown em {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .peakFacts {
   grid-template-columns: 1fr;
   gap: 10px;
@@ -377,5 +424,10 @@ dd {
   .row time {
     grid-column: 2;
     text-align: left;
+  }
+
+  .countdown {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
