@@ -22,6 +22,7 @@ const copy = {
     english: "English",
     japanese: "Japanese",
     eyebrow: "Official status monitor",
+    title: "LLM Status",
     lede:
       "Choose a provider, model profile, and timezone to read live signals from official status sources and compare peak-time windows.",
     openOfficialPage: "Open official page",
@@ -70,6 +71,7 @@ const copy = {
     english: "英語",
     japanese: "日本語",
     eyebrow: "公式ステータスモニター",
+    title: "LLMステータス",
     lede:
       "プロバイダー、モデル、タイムゾーンを選択して、公式ステータス情報とピーク時間帯を確認できます。",
     openOfficialPage: "公式ページを開く",
@@ -318,7 +320,7 @@ export default function Home() {
       <section className="hero">
         <div>
           <p className="eyebrow">{t.eyebrow}</p>
-          <h1>LLM Status</h1>
+          <h1>{t.title}</h1>
           <p className="lede">{t.lede}</p>
         </div>
         <a className="sourceLink" href={provider.statusPageUrl} target="_blank" rel="noreferrer">
