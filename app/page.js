@@ -52,6 +52,7 @@ const copy = {
     countdownOffPeak: "Off-peak in",
     nextPeakAt: "Next peak starts",
     offPeakAt: "Off-peak starts",
+    timeLeft: "Time left",
     peakNow: "Peak now",
     offPeakNow: "Off-peak now",
     read: "Read",
@@ -114,6 +115,7 @@ const copy = {
     countdownOffPeak: "オフピークまで",
     nextPeakAt: "次のピーク開始",
     offPeakAt: "オフピーク開始",
+    timeLeft: "残り時間",
     peakNow: "ピーク中",
     offPeakNow: "オフピーク中",
     read: "読む",
@@ -176,6 +178,7 @@ const copy = {
     countdownOffPeak: "距离非高峰",
     nextPeakAt: "下一次高峰开始",
     offPeakAt: "非高峰开始",
+    timeLeft: "剩余时间",
     peakNow: "当前为高峰",
     offPeakNow: "当前为非高峰",
     read: "阅读",
@@ -250,6 +253,26 @@ function formatDateTime(value, timezoneId, lang) {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: resolved
+  }).format(date);
+}
+
+function formatTimeOnly(value, timezoneId, lang) {
+  if (!value) return copy[lang].notPublished;
+  const date = new Date(value);
+  const resolved = resolveTimeZone(timezoneId);
+  const offset = getFixedOffsetHours(resolved);
+  const locale = lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en";
+
+  if (offset !== null) {
+    const shifted = new Date(date.getTime() + offset * 60 * 60 * 1000);
+    return shifted.toISOString().slice(11, 16);
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
     timeZone: resolved
   }).format(date);
 }
@@ -544,10 +567,10 @@ export default function Home() {
             {peakCountdown ? (
               <div className={`countdown ${peakCountdown.isPeakNow ? "isPeak" : "isOffPeak"}`}>
                 <div>
-                  <span>{peakCountdown.isPeakNow ? t.countdownOffPeak : t.countdownPeak}</span>
-                  <strong>{peakCountdown.value}</strong>
+                  <span>{peakCountdown.isPeakNow ? t.offPeakAt : t.nextPeakAt}</span>
+                  <strong>{formatTimeOnly(peakCountdown.targetAt, timezoneId, lang)}</strong>
                   <small className="countdownTime">
-                    {peakCountdown.isPeakNow ? t.offPeakAt : t.nextPeakAt}:{" "}
+                    {t.timeLeft}: {peakCountdown.value} ·{" "}
                     {formatDateTime(peakCountdown.targetAt, timezoneId, lang)}
                   </small>
                 </div>
