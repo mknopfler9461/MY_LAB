@@ -273,9 +273,21 @@ dd {
 }
 
 .countdown strong {
+  display: block;
+  margin-bottom: 8px;
   font-size: clamp(2.6rem, 8vw, 4.2rem);
   line-height: 0.9;
   letter-spacing: 0;
+}
+
+.countdownTime {
+  display: block;
+  max-width: 32ch;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .countdown em {

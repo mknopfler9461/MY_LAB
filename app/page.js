@@ -50,6 +50,8 @@ const copy = {
     offPeak: "Off-peak",
     countdownPeak: "Next peak in",
     countdownOffPeak: "Off-peak in",
+    nextPeakAt: "Next peak starts",
+    offPeakAt: "Off-peak starts",
     peakNow: "Peak now",
     offPeakNow: "Off-peak now",
     read: "Read",
@@ -110,6 +112,8 @@ const copy = {
     offPeak: "オフピーク",
     countdownPeak: "次のピークまで",
     countdownOffPeak: "オフピークまで",
+    nextPeakAt: "次のピーク開始",
+    offPeakAt: "オフピーク開始",
     peakNow: "ピーク中",
     offPeakNow: "オフピーク中",
     read: "読む",
@@ -170,6 +174,8 @@ const copy = {
     offPeak: "非高峰",
     countdownPeak: "距离下一次高峰",
     countdownOffPeak: "距离非高峰",
+    nextPeakAt: "下一次高峰开始",
+    offPeakAt: "非高峰开始",
     peakNow: "当前为高峰",
     offPeakNow: "当前为非高峰",
     read: "阅读",
@@ -363,6 +369,7 @@ function getPeakCountdown(peakWindow, now = new Date()) {
 
   return {
     isPeakNow: Boolean(currentWindow),
+    targetAt: target.toISOString(),
     value: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
   };
 }
@@ -539,6 +546,10 @@ export default function Home() {
                 <div>
                   <span>{peakCountdown.isPeakNow ? t.countdownOffPeak : t.countdownPeak}</span>
                   <strong>{peakCountdown.value}</strong>
+                  <small className="countdownTime">
+                    {peakCountdown.isPeakNow ? t.offPeakAt : t.nextPeakAt}:{" "}
+                    {formatDateTime(peakCountdown.targetAt, timezoneId, lang)}
+                  </small>
                 </div>
                 <em>{peakCountdown.isPeakNow ? t.peakNow : t.offPeakNow}</em>
               </div>
